@@ -44,17 +44,19 @@ changing code). The read side is what makes them pay off.
 ```
 skills/handover/
   SKILL.md
-  agents/openai.yaml          # Codex packaging metadata
   scripts/handover-path       # resolve (and --init) handover.md
   scripts/handover-files      # changed-file list for an entry
 skills/obsidian/
   SKILL.md
   note-templates.md           # file-note and Architecture.md templates
-  agents/openai.yaml
   scripts/vault-path          # resolve (and --init) the vault
   scripts/vault-changes       # what changed since the last sync
   scripts/vault-mark-synced   # record the synced commit
 ```
+
+No `agents/openai.yaml`: no skill in the repo carries one — the Codex
+packager seeds that metadata from a prior official package, and this fork
+is not packaged for Codex.
 
 Frontmatter (name + description only; descriptions are triggers, not
 workflow summaries):
@@ -79,8 +81,10 @@ workflow summaries):
   already ignores it, and reports that `.gitignore` changed (uncommitted).
 
 `handover-files [<base> [<head>]]`
-- Prints one skeleton line per changed file, ready to be filled:
+- Prints the entry's `**Branch:**` line, a blank line, then one skeleton
+  line per changed file, ready to be filled:
   `` - `path` (M) — `` ; renames as `` - `old` → `new` (R) — ``.
+  Prints nothing (note on stderr) when nothing changed.
 - Source: `git diff --name-status -M <base>..<head>`; when `<head>` is
   omitted, also uncommitted tracked changes and untracked, non-ignored
   files (marked `+ uncommitted`).
@@ -246,10 +250,10 @@ until it is committed.
 | Where | Change |
 |---|---|
 | `subagent-driven-development/implementer-prompt.md` | Optional "Context upkeep" block the controller includes only when the project opted in: the absolute `handover.md` / vault paths, BASE, and the instruction to append its entry (via `handover-files BASE`) and update notes for the files it changed, then say so in its report. Subagents do not load skills on their own, so the brief carries the instructions. |
+| `subagent-driven-development/SKILL.md` › 1. Dispatch the implementer | Include the Context Upkeep section when the project opted in. |
 | `subagent-driven-development/SKILL.md` › 5. Complete the task | Before the ledger line: confirm the entry for Task N exists (fix rounds add their own). |
-| `subagent-driven-development/SKILL.md` › Finish | Before the workspace is deleted: the vault sweep (or dispatch it). |
-| `executing-plans/SKILL.md` › per-task completion and Finish | The executor writes its own entry and updates notes after each task; sweep at Finish. |
-| `finishing-a-development-branch/SKILL.md` | After Step 1 (verify tests), before presenting options: the vault sweep if opted in. The options menu is untouched. |
+| `executing-plans/SKILL.md` › 4. Complete the task | The executor writes its own entry and updates notes after each task. |
+| `finishing-a-development-branch/SKILL.md` › Step 1 | After the suite is green, before presenting options: the vault sweep if opted in. The options menu is untouched. This is the only sweep: both plan executors end by invoking this skill, so a second sweep in their Finish sections would find nothing. |
 | `verification-before-completion/SKILL.md` › Common Failures | Row: change done in a project with `handover.md` → an entry covering every changed file → "the code works" is not enough. |
 | `hooks/session-start` | When `handover.md` or `.obsidian-vault/` exists at the main root of `${CLAUDE_PROJECT_DIR:-$PWD}`, append one reminder line each to the injected context (read before changing code; append/update after). Guarded so a git failure never breaks the hook. Harnesses that bootstrap without this hook rely on the skill descriptions. |
 | `.muse-plugin/plugin.json` | Two entries in the static skill list. |
@@ -257,11 +261,14 @@ until it is committed.
 
 ## Testing
 
-- **Structure tests** — `tests/handover/test-skill-structure.sh` and
-  `tests/obsidian/test-skill-structure.sh`, modeled on
+- **Structure test** — one `tests/context-skills/test-skill-structure.sh`
+  checking both skills, modeled on
   `tests/diagnosing-superpowers/test-skill-structure.sh` (name matches
   directory, description starts "Use when", ≤1024 chars, referenced files
-  exist, no "the user").
+  exist, scripts executable in git, no "the user").
+- **Line endings** — `.gitattributes` gains `skills/*/scripts/* text eol=lf`;
+  extensionless scripts are otherwise checked out CRLF under
+  `core.autocrlf=true`, which Git Bash tolerates but WSL bash does not.
 - **Script tests** — `tests/claude-code/test-handover-scripts.sh` and
   `tests/claude-code/test-obsidian-scripts.sh`, each building a temp git
   repo: init creates the file/folder and git-ignores it; resolution from a
