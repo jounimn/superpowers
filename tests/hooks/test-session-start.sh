@@ -245,6 +245,21 @@ assert_command_output \
     CLAUDE_PROJECT_DIR="$context_project" \
     bash "$HOOK_UNDER_TEST"
 
+# A linked worktree of the project resolves to the main checkout's artifacts.
+context_root="$(git -C "$context_project" rev-parse --show-toplevel)"
+git -C "$context_project" -c user.email=t@example.com -c user.name=t -c commit.gpgsign=false \
+    commit -q --allow-empty -m init
+git -C "$context_project" worktree add -q "$TEST_ROOT/project-with-context-wt" -b wt
+assert_command_output \
+    "SessionStart in a linked worktree points at the main checkout's handover log" \
+    "nested" \
+    "handover log at $context_root/handover.md" \
+    "" \
+    "$context_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    CLAUDE_PROJECT_DIR="$TEST_ROOT/project-with-context-wt" \
+    bash "$HOOK_UNDER_TEST"
+
 plain_project="$TEST_ROOT/project-without-context"
 git init -q "$plain_project"
 plain_home="$(make_home project-plain)"
