@@ -8,7 +8,9 @@
 #   D<TAB>path          the source is gone and its note exists
 #   R<TAB>old<TAB>new   the source was renamed; the note is still under old
 # Without .sync-state (the initial build) every eligible file is listed — A,
-# or M when a note already exists — and the count goes to stderr.
+# or M when a note already exists — and the count goes to stderr. When
+# .sync-state is not in HEAD's history (another worktree marked it), the
+# diff starts at their merge-base, with a warning on stderr.
 # Eligible: tracked, or untracked and not ignored; text and not empty; not
 # excluded below or by a glob in <vault>/.vaultignore (one per line, matched
 # against the repo-relative path, * crosses directories, # starts a comment).
@@ -30,7 +32,7 @@ fi
 
 excluded() {
   case "$1" in
-    handover.md|.obsidian-vault/*|.superpowers/*) return 0 ;;
+    handover.md|.obsidian-vault/*|.superpowers/*|.claude-flow/*) return 0 ;;
     *.lock|package-lock.json|*/package-lock.json|pnpm-lock.yaml|*/pnpm-lock.yaml) return 0 ;;
     *.min.*|*.map|*.svg) return 0 ;;
   esac
@@ -61,6 +63,18 @@ synced=$(tr -d '[:space:]' < "$vault/.sync-state")
 if ! git rev-parse --verify --quiet "$synced^{commit}" >/dev/null; then
   echo "vault-changes: .sync-state names an unknown commit ($synced); delete it to rebuild" >&2
   exit 2
+fi
+# Every worktree shares one .sync-state. When another branch's checkout
+# marked it, diff from the common ancestor so that branch's files are not
+# reported as deleted here.
+if ! git merge-base --is-ancestor "$synced" HEAD 2>/dev/null; then
+  if fork=$(git merge-base "$synced" HEAD 2>/dev/null); then
+    echo "vault-changes: .sync-state ($(git rev-parse --short=7 "$synced")) is not in HEAD's history; diffing from their merge-base $(git rev-parse --short=7 "$fork")" >&2
+    synced=$fork
+  else
+    echo "vault-changes: .sync-state ($synced) shares no history with HEAD; delete it to rebuild" >&2
+    exit 2
+  fi
 fi
 
 while IFS=$'\t' read -r status a b; do

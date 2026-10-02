@@ -62,9 +62,10 @@ resolve every line:
 
 Update `Architecture.md` when files were added, removed or renamed, a
 dependency appeared between modules, or an entry point or external service
-changed. Then `bash scripts/vault-mark-synced`.
+changed. Then `bash scripts/vault-mark-synced`. Run vault-mark-synced from the
+checkout whose changes you just synced.
 
-History lines read `- <date> · <agent> — <what changed>`: from the handover
+History lines read `- <date> · <agent> · <model id> — <what changed>`: from the handover
 entry when there is one, otherwise from the commit subjects.
 
 **Before finishing a branch**, run the same pass as a sweep:

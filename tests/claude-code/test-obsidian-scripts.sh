@@ -32,6 +32,11 @@ expect_contains() {
         fail "$1"; echo "    expected to contain: $3"; printf '%s\n' "$2" | sed 's/^/    | /'
     fi
 }
+expect_not_contains() {
+    if [[ "$2" != *"$3"* ]]; then pass "$1"; else
+        fail "$1"; echo "    expected NOT to contain: $3"; printf '%s\n' "$2" | sed 's/^/    | /'
+    fi
+}
 in_repo() { ( cd "$REPO" && "$@" ); }
 commit_all() { ( cd "$REPO" && git add -A && git "${GIT_ID[@]}" commit -qm "$1" ); }
 commit_staged() { ( cd "$REPO" && git "${GIT_ID[@]}" commit -qm "$1" ); }   # keeps untracked fixtures untracked
@@ -144,6 +149,36 @@ R${TAB}d.txt${TAB}e.txt")"
     printf 'w\n' > "$TEST_ROOT/wt/w.txt"
     out="$(cd "$TEST_ROOT/wt" && bash "$OB_SCRIPTS/vault-changes")"
     expect_eq "vault-changes in a worktree lists that worktree's changes" "$out" "A${TAB}w.txt"
+
+    # --- from a subdirectory: repo-relative output, the main vault's state ---
+    local root_out
+    root_out="$(in_repo bash "$OB_SCRIPTS/vault-changes")"
+    out="$(cd "$REPO/src" && bash "$OB_SCRIPTS/vault-changes")"
+    expect_eq "vault-changes from a subdirectory prints the same repo-relative lines" "$out" "$root_out"
+
+    # --- synced in a worktree, checked in main: no false deletions ---
+    printf 'y\n' > "$TEST_ROOT/wt/y.txt"
+    ( cd "$TEST_ROOT/wt" && git add y.txt && git "${GIT_ID[@]}" commit -qm y )
+    note y.txt
+    ( cd "$TEST_ROOT/wt" && bash "$OB_SCRIPTS/vault-mark-synced" >/dev/null )
+    out="$(in_repo bash "$OB_SCRIPTS/vault-changes" 2>"$TEST_ROOT/err")"
+    err="$(cat "$TEST_ROOT/err")"
+    expect_not_contains "a file added on another branch is not reported deleted" "$out" "D${TAB}y.txt"
+    expect_contains "a .sync-state outside HEAD's history triggers a warning" "$err" "merge-base"
+    expect_contains "…and this checkout's own changes are still listed" "$out" "M${TAB}src/a.js"
+
+    # --- mark synced from a subdirectory: written in the main vault ---
+    head="$(in_repo git rev-parse HEAD)"
+    out="$(cd "$REPO/src" && bash "$OB_SCRIPTS/vault-mark-synced")"
+    expect_eq "vault-mark-synced from a subdirectory prints HEAD" "$out" "$head"
+    expect_eq "…and writes .sync-state in the main vault" "$(tr -d '[:space:]' < "$REPO/.obsidian-vault/.sync-state")" "$head"
+    if [[ -e "$REPO/src/.obsidian-vault" ]]; then fail "no vault appears in the subdirectory"; else pass "no vault appears in the subdirectory"; fi
+
+    # --- agent-tool state folders are excluded ---
+    mkdir -p "$REPO/.claude-flow"
+    printf '{"s":1}\n' > "$REPO/.claude-flow/state.json"
+    out="$(in_repo bash "$OB_SCRIPTS/vault-changes")"
+    expect_not_contains ".claude-flow files are never listed" "$out" ".claude-flow"
 
     # --- unknown commit in .sync-state ---
     printf 'deadbeef\n' > "$REPO/.obsidian-vault/.sync-state"
