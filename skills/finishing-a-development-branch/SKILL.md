@@ -83,6 +83,8 @@ is theirs.
 
 ## Step 5: Execute Choice
 
+If this branch untracked files (`git rm --cached`), a commit message or PR body runs to several lines, or history needs repair, read [git-gotchas.md](git-gotchas.md) before executing.
+
 ### Option 1: Merge Locally
 
 ```bash
