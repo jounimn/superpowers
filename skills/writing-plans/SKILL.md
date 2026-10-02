@@ -153,6 +153,10 @@ of step carries what makes it unambiguous and nothing more:
   passed.
 - **A reference to another task:** that task's Interfaces block says what
   to use; the plan does not repeat that task's code.
+- **An assumption about a system outside the repo:** an API's execution or
+  batching semantics, whether this account can call a given model or
+  endpoint. It is not a decision the plan can make: mark it UNVERIFIED and
+  make the owning task's first step a live probe (the cheapest real call).
 
 A plan is the set of decisions the implementer cannot make alone. A plan
 longer than the code it describes has written the code instead. Lines that
@@ -164,7 +168,7 @@ opposite failure, and the self-review catches both.
 
 After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
 
-**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps. A list inside a sentence is N requirements — one coverage row each.
 
 **2. Step scan:** Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that: a line that decides nothing is a gap, a function body the signature and tests already determine is a transcript. Fix both.
 
