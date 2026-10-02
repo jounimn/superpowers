@@ -168,6 +168,13 @@ should fail for each realistic mutation:
 A mutation nothing catches marks the behavior as unprotected — or the
 test as tautological.
 
+When you can't tell whether a test catches a mutation, run it instead of
+arguing: record `git hash-object <file>`, apply the mutation, run only
+the affected test file, restore. Confirm the restore by running
+`git hash-object <file>` again and comparing it with the value you
+recorded. Do not rely on `git status`, which can list a restored file as
+modified.
+
 ## Quick Reference
 
 | When you... | Do |
@@ -196,3 +203,6 @@ test as tautological.
 - A method is called only from test files
 - Mock setup is more than half the test, or you can't explain why the mock is needed
 - Mocking "just to be safe"
+- Every test of a stateful unit checks only its initial state; none drives a transition (one event per input path, one value outside the declared limits)
+- A rule that rewrites a finite corpus (regex repair, normalizer) was judged on fixtures alone — run its match set over the whole corpus and read every hit
+- An assertion ORs two conditions and one holds even when the feature is absent (`expect(a === x || b === 'none')`) — including one copied from a brief
