@@ -217,6 +217,47 @@ assert_command_output \
     CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
     bash "$HOOK_UNDER_TEST"
 
+# Opt-in project context: one reminder line per artifact that exists at the
+# project's main checkout root, nothing otherwise.
+context_project="$TEST_ROOT/project-with-context"
+git init -q "$context_project"
+printf '# Handover log\n' > "$context_project/handover.md"
+mkdir -p "$context_project/.obsidian-vault"
+context_home="$(make_home project-context)"
+# EXPECT_CONTAINS takes one string (only EXPECT_NOT_CONTAINS splits on \037),
+# so each reminder gets its own assertion.
+assert_command_output \
+    "SessionStart reminds about an opted-in project's handover log" \
+    "nested" \
+    "handover log at" \
+    "" \
+    "$context_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    CLAUDE_PROJECT_DIR="$context_project" \
+    bash "$HOOK_UNDER_TEST"
+assert_command_output \
+    "SessionStart reminds about an opted-in project's Obsidian vault" \
+    "nested" \
+    "Obsidian context vault at" \
+    "" \
+    "$context_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    CLAUDE_PROJECT_DIR="$context_project" \
+    bash "$HOOK_UNDER_TEST"
+
+plain_project="$TEST_ROOT/project-without-context"
+git init -q "$plain_project"
+plain_home="$(make_home project-plain)"
+assert_command_output \
+    "SessionStart adds no context reminders to a project that has not opted in" \
+    "nested" \
+    "" \
+    "handover log at"$'\037'"Obsidian context vault at" \
+    "$plain_home" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    CLAUDE_PROJECT_DIR="$plain_project" \
+    bash "$HOOK_UNDER_TEST"
+
 if [[ "$FAILURES" -gt 0 ]]; then
     echo "STATUS: FAILED ($FAILURES failure(s))"
     exit 1
