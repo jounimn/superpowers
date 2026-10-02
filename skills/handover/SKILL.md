@@ -43,9 +43,10 @@ change your human partner would recognize as one piece of work — before you
 claim it done.
 
 1. `bash scripts/handover-files [BASE]` prints the entry's `**Branch:**` line
-   and one skeleton line per changed file. BASE defaults to where the latest
-   entry ended; pass the commit you started from when you know it (in a plan
-   task: the task's BASE).
+   and one skeleton line per changed file. BASE defaults to where the newest
+   entry in this branch's history ended; pass the commit you started from
+   when you know it (in a plan task: the task's BASE; in a fix round: the
+   commit your previous entry ended at, so each change is covered once).
 2. Fill every skeleton line with what changed in that file and why, and add
    the header and summary:
 

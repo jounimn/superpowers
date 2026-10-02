@@ -148,7 +148,7 @@ main() {
     in_repo git switch -q -c side "$base"
     printf 's\n' > "$REPO/s.txt"
     err="$(in_repo bash "$HO_SCRIPTS/handover-files" 2>&1 >/dev/null)"
-    expect_contains "a latest entry outside HEAD's history triggers a warning" "$err" "not in HEAD's history"
+    expect_contains "no entry in HEAD's history triggers a warning" "$err" "in HEAD's history"
     out="$(in_repo bash "$HO_SCRIPTS/handover-files" 2>/dev/null)"
     expect_contains "the fallback lists the uncommitted change" "$out" '- `s.txt` (A) — '
     expect_not_contains "the fallback lists nothing committed" "$out" '`f.txt`'
@@ -159,6 +159,34 @@ main() {
     rc=0; out="$(in_repo bash "$HO_SCRIPTS/handover-files" HEAD 2>/dev/null)" || rc=$?
     expect_eq "no changes: exit 0" "$rc" "0"
     expect_eq "no changes: nothing on stdout" "$out" ""
+
+    # --- two worktrees share the log: the default BASE is this branch's newest entry ---
+    local wa wb a1 b1
+    in_repo git worktree add -q ../wa -b wa main
+    in_repo git worktree add -q ../wb -b wb main
+    wa="$TEST_ROOT/wa"; wb="$TEST_ROOT/wb"
+    printf 'a1\n' > "$wa/a1.txt"
+    ( cd "$wa" && git add a1.txt && git "${GIT_ID[@]}" commit -qm a1 )
+    a1="$(cd "$wa" && git rev-parse HEAD)"
+    printf '\n## 2026-10-01 11:00 · implementer · test-model\n**Branch:** wa @ %s..%s\n**Summary:** a1.\n\n- `a1.txt` (A) — a1\n' \
+        "${mid:0:7}" "${a1:0:7}" >> "$REPO/handover.md"
+    printf 'b1\n' > "$wb/b1.txt"
+    ( cd "$wb" && git add b1.txt && git "${GIT_ID[@]}" commit -qm b1 )
+    b1="$(cd "$wb" && git rev-parse HEAD)"
+    printf '\n## 2026-10-01 11:05 · implementer · test-model\n**Branch:** wb @ %s..%s\n**Summary:** b1.\n\n- `b1.txt` (A) — b1\n' \
+        "${mid:0:7}" "${b1:0:7}" >> "$REPO/handover.md"
+    printf 'a2\n' > "$wa/a2.txt"
+    ( cd "$wa" && git add a2.txt && git "${GIT_ID[@]}" commit -qm a2 )
+    out="$(cd "$wa" && bash "$HO_SCRIPTS/handover-files" 2>/dev/null)"
+    expect_contains "with interleaved entries, the default BASE is this branch's newest entry" "$out" "@ ${a1:0:7}.."
+    expect_contains "a commit after this branch's entry is listed" "$out" '- `a2.txt` (A) — '
+    expect_not_contains "this branch's earlier entry is not repeated" "$out" '`a1.txt`'
+
+    # --- agent-tool state folders are never listed ---
+    mkdir -p "$wa/.claude-flow"
+    printf 's\n' > "$wa/.claude-flow/state.json"
+    out="$(cd "$wa" && bash "$HO_SCRIPTS/handover-files" 2>/dev/null)"
+    expect_not_contains ".claude-flow files are never listed" "$out" '.claude-flow'
 
     if [[ "$FAILURES" -gt 0 ]]; then
         echo "STATUS: FAILED ($FAILURES failure(s))"

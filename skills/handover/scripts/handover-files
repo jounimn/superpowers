@@ -4,8 +4,9 @@
 # agent's memory. The agent fills in each line's description.
 #
 # Usage: handover-files [BASE [HEAD]]
-#   BASE defaults to the end commit of the latest entry in handover.md when
-#   that commit is in HEAD's history, otherwise to HEAD. Without HEAD, the
+#   BASE defaults to the end commit of the newest entry in handover.md whose
+#   end commit is in HEAD's history, otherwise (with a warning) to HEAD.
+#   Without HEAD, the
 #   working tree counts too: uncommitted and untracked files are listed and
 #   the range is marked "+ uncommitted".
 # Output: "**Branch:** <branch> @ <base7>..<head7>", a blank line, then
@@ -22,15 +23,20 @@ base=${1:-}
 head=${2:-}
 
 if [ -z "$base" ]; then
-  last=""
+  # Linked worktrees share one log, so the latest entry may be another
+  # branch's: take the newest entry whose end commit is in HEAD's history.
+  ends=""
   if log=$(bash "$here/handover-path" 2>/dev/null); then
-    last=$(sed -n 's/^\*\*Branch:\*\* .* @ [0-9a-f]\{7,40\}\.\.\([0-9a-f]\{7,40\}\).*$/\1/p' "$log" | tail -n 1)
+    ends=$(sed -n 's/^\*\*Branch:\*\* .* @ [0-9a-f]\{7,40\}\.\.\([0-9a-f]\{7,40\}\).*$/\1/p' "$log" \
+      | awk '{ l[NR] = $0 } END { for (i = NR; i > 0; i--) print l[i] }')
   fi
-  if [ -n "$last" ] && git merge-base --is-ancestor "$last" HEAD 2>/dev/null; then
-    base=$last
-  else
-    if [ -n "$last" ]; then
-      echo "handover-files: latest entry ends at $last, which is not in HEAD's history; listing uncommitted changes only" >&2
+  while IFS= read -r c; do
+    [ -n "$c" ] || continue
+    if git merge-base --is-ancestor "$c" HEAD 2>/dev/null; then base=$c; break; fi
+  done <<< "$ends"
+  if [ -z "$base" ]; then
+    if [ -n "$ends" ]; then
+      echo "handover-files: no entry ends at a commit in HEAD's history; listing uncommitted changes only" >&2
     fi
     base=HEAD
   fi
@@ -55,7 +61,7 @@ lines=$(
   } | awk -F'\t' '
     NF < 2 { next }
     { s = substr($1, 1, 1); p = (s == "R" || s == "C") ? $3 : $2 }
-    p == "handover.md" || p ~ /^\.obsidian-vault\// { next }
+    p == "handover.md" || p ~ /^\.obsidian-vault\// || p ~ /^\.claude-flow\// { next }
     s == "R" || s == "C" { printf "- `%s` → `%s` (%s) — \n", $2, $3, s; next }
     { printf "- `%s` (%s) — \n", $2, s }'
 )
