@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Resolve this project's handover log: handover.md at the root of the main
+# checkout. A linked worktree resolves to the main checkout too — the log is
+# git-ignored, so a copy inside a worktree would be missing or lost.
+#
+# Usage: handover-path [--init]
+#   Prints the log's absolute path and exits 0 when the log exists.
+#   Exits 1 with nothing on stdout when this project has not opted in.
+#   --init  create the log (with its header) if missing and git-ignore it.
+set -euo pipefail
+
+usage() { echo "usage: handover-path [--init]" >&2; exit 2; }
+[ $# -le 1 ] || usage
+init=0
+case "${1:-}" in
+  "") ;;
+  --init) init=1 ;;
+  *) usage ;;
+esac
+
+in_git=0
+if common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+  in_git=1
+  case "$common" in
+    */.git) root=$(dirname "$common") ;;
+    *) root=$(git rev-parse --show-toplevel) ;;
+  esac
+else
+  root=$(pwd)
+fi
+log="$root/handover.md"
+
+if [ "$init" -eq 1 ]; then
+  if [ ! -f "$log" ]; then
+    printf '%s\n' "# Handover log" "" \
+      "Every agent that changes code in this project appends one entry at the" \
+      "end (oldest first). Read the latest entries before changing code." > "$log"
+  fi
+  gi="$root/.gitignore"
+  if [ "$in_git" -eq 1 ] && ! git -C "$root" check-ignore -q handover.md \
+    && ! grep -qxF '/handover.md' "$gi" 2>/dev/null; then
+    if [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ]; then printf '\n' >> "$gi"; fi
+    printf '/handover.md\n' >> "$gi"
+    echo "handover-path: added /handover.md to .gitignore (uncommitted)" >&2
+  fi
+fi
+
+if [ -f "$log" ]; then
+  printf '%s\n' "$log"
+else
+  echo "handover-path: no handover.md at $root — this project has not opted in" >&2
+  exit 1
+fi

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Print the git-derived part of a handover entry: the **Branch:** line and
+# one skeleton line per changed file, so no changed file depends on the
+# agent's memory. The agent fills in each line's description.
+#
+# Usage: handover-files [BASE [HEAD]]
+#   BASE defaults to the end commit of the latest entry in handover.md when
+#   that commit is in HEAD's history, otherwise to HEAD. Without HEAD, the
+#   working tree counts too: uncommitted and untracked files are listed and
+#   the range is marked "+ uncommitted".
+# Output: "**Branch:** <branch> @ <base7>..<head7>", a blank line, then
+#   "- `path` (M) — " per file; renames as "- `old` → `new` (R) — ".
+#   Nothing on stdout (a note on stderr) when nothing changed.
+set -euo pipefail
+
+usage() { echo "usage: handover-files [BASE [HEAD]]" >&2; exit 2; }
+[ $# -le 2 ] || usage
+top=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "handover-files: not a git repository" >&2; exit 2; }
+here=$(cd "$(dirname "$0")" && pwd)
+cd "$top"
+base=${1:-}
+head=${2:-}
+
+if [ -z "$base" ]; then
+  last=""
+  if log=$(bash "$here/handover-path" 2>/dev/null); then
+    last=$(sed -n 's/^\*\*Branch:\*\* .* @ [0-9a-f]\{7,40\}\.\.\([0-9a-f]\{7,40\}\).*$/\1/p' "$log" | tail -n 1)
+  fi
+  if [ -n "$last" ] && git merge-base --is-ancestor "$last" HEAD 2>/dev/null; then
+    base=$last
+  else
+    if [ -n "$last" ]; then
+      echo "handover-files: latest entry ends at $last, which is not in HEAD's history; listing uncommitted changes only" >&2
+    fi
+    base=HEAD
+  fi
+fi
+git rev-parse --verify --quiet "$base^{commit}" >/dev/null || { echo "handover-files: bad BASE: $base" >&2; exit 2; }
+if [ -n "$head" ]; then
+  git rev-parse --verify --quiet "$head^{commit}" >/dev/null || { echo "handover-files: bad HEAD: $head" >&2; exit 2; }
+fi
+
+if [ -n "$head" ]; then
+  changes=$(git -c core.quotePath=false diff --name-status -M "$base" "$head")
+  untracked=""
+else
+  changes=$(git -c core.quotePath=false diff --name-status -M "$base")
+  untracked=$(git -c core.quotePath=false ls-files --others --exclude-standard)
+fi
+
+lines=$(
+  {
+    printf '%s\n' "$changes"
+    if [ -n "$untracked" ]; then printf '%s\n' "$untracked" | awk '{ print "A\t" $0 }'; fi
+  } | awk -F'\t' '
+    NF < 2 { next }
+    { s = substr($1, 1, 1); p = (s == "R" || s == "C") ? $3 : $2 }
+    p == "handover.md" || p ~ /^\.obsidian-vault\// { next }
+    s == "R" || s == "C" { printf "- `%s` → `%s` (%s) — \n", $2, $3, s; next }
+    { printf "- `%s` (%s) — \n", $2, s }'
+)
+
+if [ -z "$lines" ]; then
+  echo "handover-files: no changes since $(git rev-parse --short=7 "$base")" >&2
+  exit 0
+fi
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+[ "$branch" != "HEAD" ] || branch=detached
+range="$(git rev-parse --short=7 "$base")..$(git rev-parse --short=7 "${head:-HEAD}")"
+if [ -z "$head" ] && { [ -n "$untracked" ] || ! git diff --quiet HEAD --; }; then
+  range="$range + uncommitted"
+fi
+printf '**Branch:** %s @ %s\n\n%s\n' "$branch" "$range" "$lines"
