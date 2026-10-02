@@ -45,7 +45,11 @@ Skip any step = lying, not verifying
 | Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
 | Regression test works | Red-green cycle verified | Test passes once |
 | Agent completed | VCS diff shows changes | Agent reports "success" |
+| Stage wrote N records | Records read back: ids, status, timestamps | Stage's own log line or counter |
 | Requirements met | Line-by-line checklist | Tests passing |
+| Environment literal changed (port, host, URL, path) | Repo-wide search for the old value: every hit accounted for | The edited file works |
+| Commit or history rewrite done | Stored result re-read in a separate call: `git log -1 --format=%B` for a commit; `git log --format='%h %s%n%b' <base>..HEAD` over every rewritten commit (or `git range-diff <backup-ref>...HEAD`) for a history rewrite | The mutating command's own echo |
+| Scripted edit of hand-formatted JSON/YAML | Untouched file round-trips byte-identical first; diff stat matches the intended change | Tests passing |
 
 ## Red Flags - STOP
 
