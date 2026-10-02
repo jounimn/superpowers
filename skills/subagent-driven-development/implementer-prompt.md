@@ -29,6 +29,17 @@ Subagent (general-purpose):
 
     **Ask them now.** Raise any concerns before starting work.
 
+    The brief's test code, selectors, helpers, cross-references and
+    figures are the plan author's unverified assumptions, and can be
+    wrong even in a plan written minutes ago. Check each against the
+    current source and, where one exists, a passing test that exercises
+    the same surface. Recompute every figure from its inputs before
+    relying on it. Values the brief quotes from the spec or its Global
+    Constraints stay verbatim. Everything else follows your check,
+    including a value the brief derived from a figure that does not
+    reproduce: use the checked value and report both, with how you
+    checked.
+
     ## Your Job
 
     Once you're clear on requirements:

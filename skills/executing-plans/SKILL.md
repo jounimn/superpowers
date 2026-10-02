@@ -188,6 +188,14 @@ step's code is written first and run first. Watching it fail is a step,
 not a formality — a test that passes before the implementation exists is
 a finding about the test.
 
+The brief's test code, selectors, helpers, cross-references and figures
+are the plan author's unverified assumptions. They can be wrong even in
+a plan written minutes ago. Check each against the current source and,
+where one exists, a passing test that exercises the same surface.
+Recompute every figure from its inputs before relying on it. Values the
+spec pins stay verbatim; ledger any other correction as a `Ruling:`,
+with both numbers when a figure changed.
+
 Every step that runs a command has an `Expected:` line. Run the command,
 read its output, and compare. Three outcomes:
 
@@ -245,7 +253,10 @@ package path, the plan and spec paths, the plan's Review Focus section
 verbatim if it has one (the input classes and failure modes the plan's
 tests do not exercise — the reviewer checks each deliberately), and a
 pointer to the ledger's `Ruling:` lines so it can weigh the calls you
-made. Specify the model
+made. Point it at the ledger's pre-flight rows too — what one task produces
+against what another consumes — so it checks the seams between tasks: a
+defect that spans two tasks is invisible from inside either one.
+Specify the model
 explicitly; an omitted model inherits the session's, which may not be the
 most capable. This is the one fresh context the whole run buys. Do not
 skip it, and do not replace it with your own read of the diff.
