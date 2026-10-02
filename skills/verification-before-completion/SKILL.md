@@ -50,6 +50,7 @@ Skip any step = lying, not verifying
 | Environment literal changed (port, host, URL, path) | Repo-wide search for the old value: every hit accounted for | The edited file works |
 | Commit or history rewrite done | Stored result re-read in a separate call: `git log -1 --format=%B` for a commit; `git log --format='%h %s%n%b' <base>..HEAD` over every rewritten commit (or `git range-diff <backup-ref>...HEAD`) for a history rewrite | The mutating command's own echo |
 | Scripted edit of hand-formatted JSON/YAML | Untouched file round-trips byte-identical first; diff stat matches the intended change | Tests passing |
+| Change done in a project with handover.md | An entry at the end of handover.md covering every changed file | "The code works" |
 
 ## Red Flags - STOP
 

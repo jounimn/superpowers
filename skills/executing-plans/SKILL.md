@@ -239,6 +239,11 @@ if they pass — appends the completion line to the ledger:
 A failing run records nothing; the task is not complete. When it records,
 mark the todo complete and take the next task.
 
+If the project keeps a handover log or an Obsidian vault, append your entry
+(superpowers:handover — `handover-files` with the BASE `task-start` printed)
+and update the notes for the files you changed (superpowers:obsidian) before
+you take the next task.
+
 ## Final Review
 
 Run `../subagent-driven-development/scripts/review-package PLAN_FILE MERGE_BASE HEAD`

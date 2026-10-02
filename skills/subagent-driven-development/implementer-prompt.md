@@ -136,6 +136,31 @@ Subagent (general-purpose):
     you — your report is the test evidence. Then reply with the same short
     status contract as your first report.
 
+    ## Context Upkeep
+
+    [Include this section only when the project keeps a handover log or an
+    Obsidian vault — the controller checks once, at Setup. Otherwise delete
+    it.]
+
+    This project keeps context files outside git. After your commits, and
+    again after each fix round:
+    - Handover log [HANDOVER_FILE]: run
+      `bash [HANDOVER_SCRIPTS]/handover-files [BASE]`, fill every line it
+      prints with what changed in that file and why, and append ONE entry to
+      the end of the log in a single write:
+      `## <YYYY-MM-DD HH:MM> · implementer (Task N) · <your model id>`
+      (after a fix round: `fix round <R> (Task N)`), then the
+      `**Branch:**` line the script printed, `**Summary:**` in one to three
+      sentences, `**Open:**` only if something is unfinished, a blank line,
+      and the filled file lines.
+    - Obsidian vault [VAULT_DIR]: for each file you changed, update its note
+      at `files/<path>.md` — rewrite Purpose / Key contents / Depends on when
+      the file's purpose, interface or dependencies changed, otherwise add a
+      History line `- <date> · implementer (Task N) — <what changed>`. A new
+      file gets a new note shaped like its neighbors; a deleted file loses
+      its note. Leave `Architecture.md` and `.sync-state` alone.
+    Say "handover: appended" and "vault: <N> notes updated" in your report.
+
     ## Report Format
 
     Write your full report to [REPORT_FILE]:

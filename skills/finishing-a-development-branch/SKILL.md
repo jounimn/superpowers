@@ -25,6 +25,12 @@ Tests failing (<N> failures). Must fix before completing:
 
 **If tests pass:** continue to Step 2.
 
+**If the project keeps an Obsidian vault** (superpowers:obsidian), sweep it
+before Step 2: resolve every line `vault-changes` prints, update
+`Architecture.md` if the branch changed structure, then
+`vault-mark-synced` — the notes should match the code you are about to
+integrate.
+
 ## Step 2: Detect Environment
 
 ```bash
