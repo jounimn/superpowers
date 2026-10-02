@@ -264,6 +264,12 @@ and fix-round diffs need it.
   (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
   returns only status, commits, a one-line test summary, and concerns.
+- **Context upkeep:** if the project keeps a handover log or an Obsidian
+  vault (superpowers:handover's `handover-path` or superpowers:obsidian's
+  `vault-path` exits 0 — check once, at Setup), include the template's
+  Context Upkeep section with the log path, the vault path, the absolute
+  scripts directory and BASE. Subagents do not load skills on their own;
+  the dispatch carries the rules.
 - A dispatch prompt describes one task, not the session's history. Do not
   paste accumulated prior-task summaries ("state after Tasks 1-3") into
   later dispatches — a real session's dispatch hit 42k chars of which 99%
@@ -438,6 +444,11 @@ message as your other bookkeeping:
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
   tripped breaker
 
+If the project keeps a handover log, confirm before the completion line
+that the log ends with this task's entries — the implementer's, plus one
+per fix round. A missing entry leaves the task incomplete: resume the
+implementer to write it.
+
 Then mark the todo complete and move on. Never move to the next task while
 the review has open Critical/Important issues that are neither fixed nor
 parked-with-ruling at the cap.
@@ -453,7 +464,9 @@ on the most capable available model (see Model Selection), using
 superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
 the ledger's deferred-minor and parked lines so it can triage which must be
-fixed before merge.
+fixed before merge. Point it, too, at the pre-flight table's cross-task rows
+— what one task produces against what another consumes — so it checks the
+seams: each task reviewer saw one side of a seam, never both.
 
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.

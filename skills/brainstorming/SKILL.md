@@ -199,11 +199,13 @@ is the whole process.
 **Understanding the idea:**
 
 - Check out the current project state first (files, docs, recent commits)
+- Supplied inputs (reference sites, documents, data): unless the request already states each one's role, ask which role each plays before analyzing it — two inputs can have opposite jobs. A file that exists but is empty means "not yet": re-read it before asking how to proceed without it. If the design depends on an input's content, sample it first (extractable? corrupted?) and report what you found.
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
+  - With a structured multi-question tool, independent questions may share one call (up to 4); a question whose framing depends on another's answer still waits for that answer
 - Focus on understanding: purpose, constraints, success criteria
 
 **Exploring approaches:**
@@ -240,6 +242,7 @@ is the whole process.
 
 - Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
+  - When the work revises an existing spec or planning document, ask your human partner during clarifying questions whether to edit it in place or write a new spec
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
@@ -247,7 +250,7 @@ is the whole process.
 After writing the spec document, look at it with fresh eyes:
 
 1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
+2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions? Where the spec has structure, check it mechanically, not by rereading: every referenced identifier or path resolves, every total recomputes from its parts, every count word matches its list.
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
 

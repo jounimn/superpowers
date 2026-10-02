@@ -26,6 +26,28 @@ escape_for_json() {
 using_superpowers_escaped=$(escape_for_json "$using_superpowers_content")
 session_context="<EXTREMELY_IMPORTANT>\nYou have superpowers.\n\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\n\n${using_superpowers_escaped}\n</EXTREMELY_IMPORTANT>"
 
+# Opt-in project context (handover log, Obsidian vault): one reminder line per
+# artifact found at the project's main checkout root. Never fails the hook.
+project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+[ -d "$project_dir" ] || project_dir="$PWD"
+project_root="$project_dir"
+if common=$(git -C "$project_dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+  case "$common" in
+    */.git) project_root=$(dirname "$common") ;;
+    *) project_root=$(git -C "$project_dir" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$project_dir") ;;
+  esac
+fi
+project_notes=""
+if [ -f "$project_root/handover.md" ]; then
+  project_notes="${project_notes}"$'\n\n'"This project keeps a handover log at ${project_root}/handover.md: read its latest entries before changing code, and append your entry after each change (superpowers:handover)."
+fi
+if [ -d "$project_root/.obsidian-vault" ]; then
+  project_notes="${project_notes}"$'\n\n'"This project keeps an Obsidian context vault at ${project_root}/.obsidian-vault: read Architecture.md and the notes for the files you will touch before changing code, and update them after each change (superpowers:obsidian)."
+fi
+if [ -n "$project_notes" ]; then
+  session_context="${session_context}$(escape_for_json "$project_notes")"
+fi
+
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).
 # Claude Code hooks expect hookSpecificOutput.additionalContext (nested).

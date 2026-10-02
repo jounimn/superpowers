@@ -128,6 +128,8 @@ Push back when:
 
 **If you're uncomfortable pushing back out loud:** Name that tension, then tell your partner about the issue you've seen. They'll appreciate your honesty.
 
+**If two items cannot both be satisfied** (arithmetically or logically): show the computation that proves it, implement the variant that serves the intent behind both, and label the deviation in a code comment and in your reply. Never drop one silently, and never ship the known-broken one out of deference.
+
 ## Acknowledging Correct Feedback
 
 When feedback IS correct:

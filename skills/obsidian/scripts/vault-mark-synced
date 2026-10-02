@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Record that the vault now reflects HEAD: write HEAD's full SHA to
+# <vault>/.sync-state and print it. Run it only after every line
+# vault-changes printed has been resolved.
+#
+# Usage: vault-mark-synced
+set -euo pipefail
+
+[ $# -eq 0 ] || { echo "usage: vault-mark-synced" >&2; exit 2; }
+here=$(cd "$(dirname "$0")" && pwd)
+vault=$(bash "$here/vault-path")
+sha=$(git rev-parse --verify HEAD)
+printf '%s\n' "$sha" > "$vault/.sync-state"
+printf '%s\n' "$sha"

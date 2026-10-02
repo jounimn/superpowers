@@ -25,6 +25,12 @@ Tests failing (<N> failures). Must fix before completing:
 
 **If tests pass:** continue to Step 2.
 
+**If the project keeps an Obsidian vault** (superpowers:obsidian), sweep it
+before Step 2: resolve every line `vault-changes` prints, update
+`Architecture.md` if the branch changed structure, then
+`vault-mark-synced` — the notes should match the code you are about to
+integrate.
+
 ## Step 2: Detect Environment
 
 ```bash
@@ -82,6 +88,8 @@ discard the work" below). Wait for their answer; the integration decision
 is theirs.
 
 ## Step 5: Execute Choice
+
+If this branch untracked files (`git rm --cached`), a commit message or PR body runs to several lines, or history needs repair, read [git-gotchas.md](git-gotchas.md) before executing.
 
 ### Option 1: Merge Locally
 

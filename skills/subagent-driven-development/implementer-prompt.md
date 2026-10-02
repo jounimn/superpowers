@@ -29,6 +29,17 @@ Subagent (general-purpose):
 
     **Ask them now.** Raise any concerns before starting work.
 
+    The brief's test code, selectors, helpers, cross-references and
+    figures are the plan author's unverified assumptions, and can be
+    wrong even in a plan written minutes ago. Check each against the
+    current source and, where one exists, a passing test that exercises
+    the same surface. Recompute every figure from its inputs before
+    relying on it. Values the brief quotes from the spec or its Global
+    Constraints stay verbatim. Everything else follows your check,
+    including a value the brief derived from a figure that does not
+    reproduce: use the checked value and report both, with how you
+    checked.
+
     ## Your Job
 
     Once you're clear on requirements:
@@ -124,6 +135,35 @@ Subagent (general-purpose):
     ran, the command, and the output. Reviewers will not re-run tests for
     you — your report is the test evidence. Then reply with the same short
     status contract as your first report.
+
+    ## Context Upkeep
+
+    [Include this section only when the project keeps a handover log or an
+    Obsidian vault — the controller checks once, at Setup. Otherwise delete
+    it. Delete the handover or vault bullet the project does not keep, and
+    fill [HANDOVER_FILE], [HANDOVER_SCRIPTS], [VAULT_DIR] and [BASE].]
+
+    This project keeps context files outside git. After your commits, and
+    again after each fix round:
+    - Handover log [HANDOVER_FILE]: run
+      `bash [HANDOVER_SCRIPTS]/handover-files [BASE]` (after a fix round:
+      `handover-files <the commit your previous entry ended at>`, not
+      [BASE], so each change is covered once), fill every line it
+      prints with what changed in that file and why, and append ONE entry to
+      the end of the log in a single write:
+      `## <YYYY-MM-DD HH:MM> · implementer (Task N) · <your model id>`
+      (after a fix round: `fix round <R> (Task N)`), then the
+      `**Branch:**` line the script printed, `**Summary:**` in one to three
+      sentences, `**Open:**` only if something is unfinished, a blank line,
+      and the filled file lines.
+    - Obsidian vault [VAULT_DIR]: for each file you changed, update its note
+      at `files/<path>.md` — rewrite Purpose / Key contents / Depends on when
+      the file's purpose, interface or dependencies changed, otherwise add a
+      History line
+      `- <date> · implementer (Task N) · <your model id> — <what changed>`. A new
+      file gets a new note shaped like its neighbors; a deleted file loses
+      its note. Leave `Architecture.md` and `.sync-state` alone.
+    Say "handover: appended" and "vault: <N> notes updated" in your report.
 
     ## Report Format
 

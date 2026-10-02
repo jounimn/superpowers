@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Resolve this project's Obsidian context vault: .obsidian-vault/ at the root
+# of the main checkout. A linked worktree resolves to the main checkout too —
+# the vault is git-ignored, so a copy inside a worktree would be lost.
+#
+# Usage: vault-path [--init]
+#   Prints the vault's absolute path and exits 0 when the vault exists.
+#   Exits 1 with nothing on stdout when this project has not opted in.
+#   --init  create the vault and its files/ folder if missing and git-ignore it.
+set -euo pipefail
+
+usage() { echo "usage: vault-path [--init]" >&2; exit 2; }
+[ $# -le 1 ] || usage
+init=0
+case "${1:-}" in
+  "") ;;
+  --init) init=1 ;;
+  *) usage ;;
+esac
+
+in_git=0
+if common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+  in_git=1
+  case "$common" in
+    */.git) root=$(dirname "$common") ;;
+    *) root=$(git rev-parse --show-toplevel) ;;
+  esac
+else
+  root=$(pwd)
+fi
+vault="$root/.obsidian-vault"
+
+if [ "$init" -eq 1 ]; then
+  mkdir -p "$vault/files"
+  gi="$root/.gitignore"
+  if [ "$in_git" -eq 1 ] && ! git -C "$root" check-ignore -q .obsidian-vault/ \
+    && ! grep -qxF '/.obsidian-vault/' "$gi" 2>/dev/null; then
+    if [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ]; then printf '\n' >> "$gi"; fi
+    printf '/.obsidian-vault/\n' >> "$gi"
+    echo "vault-path: added /.obsidian-vault/ to .gitignore (uncommitted)" >&2
+  fi
+fi
+
+if [ -d "$vault" ]; then
+  printf '%s\n' "$vault"
+else
+  echo "vault-path: no .obsidian-vault at $root — this project has not opted in" >&2
+  exit 1
+fi

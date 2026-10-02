@@ -219,6 +219,8 @@ When writing or changing any test, read [writing-good-tests.md](writing-good-tes
 - Keep test-only code in test utilities, out of production classes
 - Understand a dependency's side effects before mocking it
 
+Framework traps (jsdom, React Testing Library, Vitest) that fail or pass a test for the wrong reason: see [testing-gotchas.md](testing-gotchas.md).
+
 ## Common Rationalizations
 
 | Excuse | Reality |
