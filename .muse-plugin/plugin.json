@@ -31,6 +31,14 @@
         "path": "skills/finishing-a-development-branch/SKILL.md"
       },
       {
+        "id": "handover",
+        "path": "skills/handover/SKILL.md"
+      },
+      {
+        "id": "obsidian",
+        "path": "skills/obsidian/SKILL.md"
+      },
+      {
         "id": "receiving-code-review",
         "path": "skills/receiving-code-review/SKILL.md"
       },

@@ -359,6 +359,10 @@ Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of t
 - **finishing-a-development-branch** - Merge/PR decision workflow
 - **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
 
+**Context** (opt-in per project; this fork)
+- **handover** - Per-agent change log in a git-ignored `handover.md`, so the next agent can pick up the work
+- **obsidian** - Git-ignored Obsidian vault: an architecture map plus one note per file, kept in step with major changes
+
 **Meta**
 - **writing-skills** - Create new skills following best practices (includes testing methodology)
 - **using-superpowers** - Introduction to the skills system
