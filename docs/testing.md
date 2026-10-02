@@ -19,6 +19,8 @@ Live in `tests/`. Currently:
 - `tests/claude-code/test-worktree-native-preference.sh` — RED-GREEN-REFACTOR validation for worktree skill (quorum covers the PRESSURE phase; bash also covers RED/GREEN baselines).
 - `tests/explicit-skill-requests/` — Haiku-specific, multi-turn, and skill-name-prompted tests not covered by quorum.
 - `tests/diagnosing-superpowers/test-skill-structure.sh` — structural checks for the diagnosing-superpowers skill (frontmatter, referenced files, leak scan, word budget); behavior-scenario eval records are kept by the maintainer outside the repo.
+- `tests/context-skills/test-skill-structure.sh` — structural checks for the fork's handover and obsidian skills (frontmatter, referenced and executable scripts, leak scan, word budget).
+- `tests/claude-code/test-handover-scripts.sh`, `tests/claude-code/test-obsidian-scripts.sh` — temp-repo tests for those skills' bash helpers.
 
 Run plugin tests via the relevant directory's `run-*.sh` or `npm test`.
 
