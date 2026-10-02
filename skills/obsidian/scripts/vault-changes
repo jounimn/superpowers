@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# List the project files whose vault notes need work since the last sync.
+#
+# Usage: vault-changes
+# Output: tab-separated lines —
+#   A<TAB>path          no note yet
+#   M<TAB>path          the note exists and the source changed
+#   D<TAB>path          the source is gone and its note exists
+#   R<TAB>old<TAB>new   the source was renamed; the note is still under old
+# Without .sync-state (the initial build) every eligible file is listed — A,
+# or M when a note already exists — and the count goes to stderr.
+# Eligible: tracked, or untracked and not ignored; text and not empty; not
+# excluded below or by a glob in <vault>/.vaultignore (one per line, matched
+# against the repo-relative path, * crosses directories, # starts a comment).
+set -euo pipefail
+
+[ $# -eq 0 ] || { echo "usage: vault-changes" >&2; exit 2; }
+here=$(cd "$(dirname "$0")" && pwd)
+vault=$(bash "$here/vault-path")
+cd "$(git rev-parse --show-toplevel)"
+
+ignores=()
+if [ -f "$vault/.vaultignore" ]; then
+  while IFS= read -r glob || [ -n "$glob" ]; do
+    glob=${glob%$'\r'}
+    case "$glob" in ''|'#'*) continue ;; esac
+    ignores+=("$glob")
+  done < "$vault/.vaultignore"
+fi
+
+excluded() {
+  case "$1" in
+    handover.md|.obsidian-vault/*|.superpowers/*) return 0 ;;
+    *.lock|package-lock.json|*/package-lock.json|pnpm-lock.yaml|*/pnpm-lock.yaml) return 0 ;;
+    *.min.*|*.map|*.svg) return 0 ;;
+  esac
+  local glob
+  for glob in ${ignores[@]+"${ignores[@]}"}; do
+    # shellcheck disable=SC2254 # the glob is meant to match as a pattern
+    case "$1" in $glob) return 0 ;; esac
+  done
+  return 1
+}
+eligible() { ! excluded "$1" && [ -f "$1" ] && grep -Iq . "$1"; }
+has_note() { [ -f "$vault/files/$1.md" ]; }
+emit() { if has_note "$1"; then printf 'M\t%s\n' "$1"; else printf 'A\t%s\n' "$1"; fi; }
+
+if [ ! -f "$vault/.sync-state" ]; then
+  count=0
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    if excluded "$p"; then continue; fi
+    emit "$p"
+    count=$((count + 1))
+  done < <(git -c core.quotePath=false grep -I -l --untracked -e . || true)
+  echo "vault-changes: initial build — $count files" >&2
+  exit 0
+fi
+
+synced=$(tr -d '[:space:]' < "$vault/.sync-state")
+if ! git rev-parse --verify --quiet "$synced^{commit}" >/dev/null; then
+  echo "vault-changes: .sync-state names an unknown commit ($synced); delete it to rebuild" >&2
+  exit 2
+fi
+
+while IFS=$'\t' read -r status a b; do
+  case "$status" in
+    R*)
+      if eligible "$b"; then
+        if has_note "$a"; then printf 'R\t%s\t%s\n' "$a" "$b"; else emit "$b"; fi
+      elif has_note "$a"; then
+        printf 'D\t%s\n' "$a"
+      fi ;;
+    C*)
+      if eligible "$b"; then emit "$b"; fi ;;
+    D)
+      if has_note "$a"; then printf 'D\t%s\n' "$a"; fi ;;
+    *)
+      if eligible "$a"; then
+        emit "$a"
+      elif has_note "$a"; then
+        printf 'D\t%s\n' "$a"
+      fi ;;
+  esac
+done < <(git -c core.quotePath=false diff --name-status -M "$synced")
+
+while IFS= read -r p; do
+  [ -n "$p" ] || continue
+  if eligible "$p" && ! has_note "$p"; then printf 'A\t%s\n' "$p"; fi
+done < <(git -c core.quotePath=false ls-files --others --exclude-standard)

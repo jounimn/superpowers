@@ -78,6 +78,7 @@ tests=(
     "test-sdd-workspace.sh"
     "test-executing-plans-scripts.sh"
     "test-handover-scripts.sh"
+    "test-obsidian-scripts.sh"
     "test-subagent-driven-development.sh"
 )
 
