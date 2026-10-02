@@ -70,6 +70,10 @@ Subagent (general-purpose):
     implementer grading their own work. Judge the code on its merits — a
     stated rationale never downgrades a finding's severity.
 
+    Numbers in the report (tests added, lines changed, a per-function
+    breakdown) are claims too: re-derive them with a script over the diff
+    file, not by eye. A total can reconcile while its breakdown is wrong.
+
     ## Tests
 
     The implementer already ran the tests and reported results with TDD
@@ -123,6 +127,11 @@ Subagent (general-purpose):
     **Tests:**
     - Do the new and changed tests verify real behavior, not mocks?
     - Are the task's edge cases covered?
+    - Did this task change existing tests? Count each such file's deleted
+      lines in the diff file — that count bounds what could have been
+      lost. Account for every deleted line — assertion, table case row, or
+      setup/input — each restored, strengthened, or justified, before
+      reading the additions.
 
     **Structure:**
     - Does each file have one clear responsibility with a well-defined interface?

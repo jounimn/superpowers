@@ -66,6 +66,10 @@ Subagent (general-purpose):
     - Does the implementation match the plan / requirements?
     - Are deviations justified improvements, or problematic departures?
     - Is all planned functionality present?
+    - Build the requirements checklist from the spec's own nouns, not the
+      plan's coverage table, and search the implementation for each. A
+      list inside one sentence is N requirements; a table row that
+      paraphrases it is not evidence.
 
     **Code quality:**
     - Clean separation of concerns?
@@ -85,12 +89,60 @@ Subagent (general-purpose):
     - Edge cases covered?
     - Integration tests where they matter?
     - All tests passing?
+    - Existing tests changed? Bound the loss first:
+      `git diff --numstat [BASE_SHA]..[HEAD_SHA]` gives each file's
+      deleted lines. Account for every deleted line — assertion, table case
+      row, or setup/input — each restored, strengthened, or justified,
+      before reading the additions.
+    - Numbers claimed in What Was Implemented (tests added, lines changed)?
+      Re-derive them with a script over the diff, not by eye — a total
+      can reconcile while its breakdown is wrong.
+    - Doubt a test's strength? Settle it, don't argue it: in a scratch
+      worktree (`git worktree add /tmp/probe-[HEAD_SHA] [HEAD_SHA]` —
+      never this checkout), run only that test file (green), break the
+      line it covers, and run it again. Green must turn red. First prove
+      the run loads the scratch copy (a syntax error planted in the
+      covered file must break it): an environment shared with this
+      checkout, such as an editable install or a workspace link, imports
+      this checkout's code instead. If you cannot get that baseline,
+      report the probe as not run rather than grading the test. Remove
+      the probe with `git worktree remove --force` afterwards.
 
     **Production readiness:**
     - Migration strategy if schema changed?
     - Backward compatibility considered?
     - Documentation complete?
     - No obvious bugs?
+
+    **Generated data:**
+    - Does the change emit a data file (catalog, fixture, extract)? Audit
+      the output itself: keys unique under the key consumers use, values
+      well-formed (balanced delimiters, parseable), ordering continuous
+      to each range's end.
+    - A count produced by the code under review is unverified until an
+      independent oracle agrees: a boundary probe past each range end, or
+      a known landmark record. A spec number taken from the same run is
+      not an oracle.
+
+    **Cross-task seams (whole-branch review only):**
+    - Does one task's code rely on another task's policy, config, or
+      permissions, or re-present another task's output in a new context
+      (print, theme, export)? Judge the pair together — each half can
+      pass its own review while the composition is wrong.
+    - Does every path referenced by the project's entry-point docs
+      (README, AGENTS.md/CLAUDE.md, docs/) — touched in this range or
+      not — and by docs or code in this range exist in [HEAD_SHA]'s tree?
+      A path on disk but untracked counts as missing — absence never
+      shows in a diff. For each miss, note whether `git stash list` or
+      `git log --all` still holds it.
+    - Is each cross-task call tested? In a scratch worktree as above
+      (never this checkout, removed afterwards), delete the call and run
+      the tests: one that passed must now fail.
+    - Does one invariant govern several parallel call sites? In the same
+      scratch worktree, mutate each site on its own (for example, replace
+      the derived value with a constant) and run the tests. A red result
+      on one site proves nothing about its siblings. List the sites you
+      probed.
 
     ## Calibration
 
