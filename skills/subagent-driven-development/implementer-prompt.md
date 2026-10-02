@@ -140,12 +140,15 @@ Subagent (general-purpose):
 
     [Include this section only when the project keeps a handover log or an
     Obsidian vault — the controller checks once, at Setup. Otherwise delete
-    it.]
+    it. Delete the handover or vault bullet the project does not keep, and
+    fill [HANDOVER_FILE], [HANDOVER_SCRIPTS], [VAULT_DIR] and [BASE].]
 
     This project keeps context files outside git. After your commits, and
     again after each fix round:
     - Handover log [HANDOVER_FILE]: run
-      `bash [HANDOVER_SCRIPTS]/handover-files [BASE]`, fill every line it
+      `bash [HANDOVER_SCRIPTS]/handover-files [BASE]` (after a fix round:
+      `handover-files <the commit your previous entry ended at>`, not
+      [BASE], so each change is covered once), fill every line it
       prints with what changed in that file and why, and append ONE entry to
       the end of the log in a single write:
       `## <YYYY-MM-DD HH:MM> · implementer (Task N) · <your model id>`
@@ -156,7 +159,8 @@ Subagent (general-purpose):
     - Obsidian vault [VAULT_DIR]: for each file you changed, update its note
       at `files/<path>.md` — rewrite Purpose / Key contents / Depends on when
       the file's purpose, interface or dependencies changed, otherwise add a
-      History line `- <date> · implementer (Task N) — <what changed>`. A new
+      History line
+      `- <date> · implementer (Task N) · <your model id> — <what changed>`. A new
       file gets a new note shaped like its neighbors; a deleted file loses
       its note. Leave `Architecture.md` and `.sync-state` alone.
     Say "handover: appended" and "vault: <N> notes updated" in your report.

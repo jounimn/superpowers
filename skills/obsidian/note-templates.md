@@ -36,7 +36,8 @@ What this file is for, in one to three sentences.
   text. Links always carry the explicit `.md`: `[[files/src/lib/http.ts]]`
   would point at the source file, not its note. Obsidian's backlinks pane
   shows the reverse direction, so there is no "Used by" list to maintain.
-- **History** gets one line per change, newest last.
+- **History** gets one line per change, newest last:
+  `- <date> · <agent> · <model id> — <what changed>`.
 - Config, data and documentation files take the same shape; Key contents
   lists the keys, sections or records that matter.
 

@@ -159,8 +159,8 @@ creates its own `.obsidian/` config inside it.
 Tracked files plus untracked, non-ignored files, text only (binary and
 empty files are skipped), excluding by default: lockfiles
 (`*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`), `*.min.*`,
-`*.map`, `*.svg`, `handover.md`, `.superpowers/**`, the vault itself, and
-any glob in `.vaultignore`.
+`*.map`, `*.svg`, `handover.md`, `.superpowers/**`, `.claude-flow/**`, the
+vault itself, and any glob in `.vaultignore`.
 
 ### Notes
 
@@ -197,7 +197,7 @@ One to three sentences: what this file is for.
 `Architecture.md`: purpose, stack, entry points, module map (one line per
 module with links to its key file notes), data flow as a mermaid diagram
 (Obsidian renders mermaid natively), external services and configuration,
-conventions, last synced commit. Both templates live in
+conventions. Both templates live in
 `note-templates.md`.
 
 ### Scripts
