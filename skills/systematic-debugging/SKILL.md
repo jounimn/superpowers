@@ -105,6 +105,14 @@ You MUST complete each phase before proceeding to the next.
 
    **This reveals:** Which layer fails (secrets → workflow ✓, workflow → build ✗)
 
+   **A test validates only the layers its traffic actually crosses.** A
+   loopback test from the host skips the inbound firewall; a tunnel ping
+   skips the overlay's ACL. For reachability problems, list the layers
+   (tunnel → overlay ACL → OS firewall → process), get evidence for each
+   from the client's real path, and read each layer's drop log before
+   calling a side "healthy". Identify the client by its real source
+   address in those logs, not by a peer list.
+
 5. **Trace Data Flow**
 
    **WHEN error is deep in call stack:**
@@ -181,6 +189,12 @@ You MUST complete each phase before proceeding to the next.
    - ONE change at a time
    - No "while I'm here" improvements
    - No bundled refactoring
+   - Removing code nobody recognises? "Foreign" and "unused" are different
+     questions. Establish provenance first (`git log --reverse --format='%h %an %ad %s' --date=short -- <path> | head -1`,
+     project notes, the source copy on disk), then grep for every
+     identifier the code DEFINES, not just its path — and move what is
+     still consumed before deleting. A consumer that degrades to a
+     fallback fails no test.
 
 3. **Verify Fix**
    - Test passes now?
