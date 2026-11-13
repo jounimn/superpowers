@@ -110,6 +110,17 @@ FOR multi-item feedback:
   4. Verify no regressions
 ```
 
+**A finding that names several sites** ("all three callers") is closed site
+by site: list each as file:line, fix or rule on every one, and carry the
+whole list if you defer it. Fixing the site you own and closing the finding
+leaves the rest open with nobody counting.
+
+**A fix that moves a file between levels of an inherited structure** (route
+groups, nested layouts or templates, themes): before accepting it, list what
+the old level supplied — root layout, global styles, fonts, providers — and
+confirm, file by file, what the new level supplies. What the move loses is
+inherited, so it never shows in the diff.
+
 ## When To Push Back
 
 Push back when:
