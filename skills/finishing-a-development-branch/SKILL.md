@@ -56,6 +56,17 @@ plan, the conversation, or the branch's upstream. If it is not already
 known, ask: "This branch split from <your best guess> - is that correct?"
 Confirm before merging: merging into the wrong base is expensive to undo.
 
+When the branch changes many files, size it by shape before judging how
+deep the pre-merge review must go — group the changed files by top-level
+directory:
+
+```bash
+git diff --name-only <base-branch>...HEAD | awk -F/ '{print (NF>1 ? $1"/" : $1)}' | sort | uniq -c | sort -rn
+```
+
+Report code vs generated/data counts with the options. Raw totals let
+versioned generated output masquerade as code churn.
+
 ## Step 4: Present Options
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**

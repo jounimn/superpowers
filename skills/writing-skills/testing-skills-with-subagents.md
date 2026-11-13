@@ -160,6 +160,14 @@ You have access to: [skill-being-tested]
 
 Make agent believe it's real work, not a quiz.
 
+**Isolate scenarios by location, not by instruction.** Dispatched agents
+inherit your cwd, and "work only inside X" does not move it — relative
+paths, hooks and stray redirections land wherever you stood. Before
+dispatching, cd to a neutral directory (none of the scenario repos), give
+each agent an absolute repo path, and tell it to cd there first. After the
+run, inspect every scenario repo (`git -C <repo> status --porcelain`) and
+attribute each unexpected change before grading.
+
 ## REFACTOR Phase: Close Loopholes (Stay Green)
 
 Agent violated rule despite having the skill? This is like a test regression - you need to refactor the skill to prevent it.

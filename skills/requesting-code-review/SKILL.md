@@ -40,6 +40,12 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{HEAD_SHA}` - Ending commit
 - `{MCP_SERVERS}` - The plan's `MCP Servers` line, or "none"
 
+Record `git rev-parse HEAD` and `git config --local --list` before
+dispatching, and compare both (plus `git status --porcelain`) when the
+reviewer returns. A reviewer experiment that missed its `cd` into a scratch
+dir can commit to your branch or change local config while `git status`
+stays clean — and your next commit buries it.
+
 **3. Act on feedback:**
 - Fix Critical issues immediately
 - Fix Important issues before proceeding

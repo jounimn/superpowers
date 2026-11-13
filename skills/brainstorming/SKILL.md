@@ -204,10 +204,12 @@ is the whole process.
 
 - Check out the current project state first (files, docs, recent commits)
 - Supplied inputs (reference sites, documents, data): unless the request already states each one's role, ask which role each plays before analyzing it — two inputs can have opposite jobs. A file that exists but is empty means "not yet": re-read it before asking how to proceed without it. If the design depends on an input's content, sample it first (extractable? corrupted?) and report what you found.
+  - A screen recording: read it as one 1 fps contact sheet in the scratchpad — `ffmpeg -i rec.mp4 -vf "fps=1,scale=640:-1,tile=3xR" -frames:v 1 montage.png`, with R = ceil(seconds / 3) — and pull full-size frames only for moments the sheet flags. Frame-by-frame reading costs an image per frame and misses transitions.
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
+  - A terse "yes" to a menu is not consent to a heavy action. Before anything that downloads large files, installs software, or changes machine-level state (env vars, services) on your human partner's machine, restate the exact action and its footprint in one line ("pull X, Y and Z, ~14 GB — ok?") and wait, unless they named that exact action.
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
   - With a structured multi-question tool, independent questions may share one call (up to 4); a question whose framing depends on another's answer still waits for that answer
 - Focus on understanding: purpose, constraints, success criteria
@@ -225,6 +227,7 @@ is the whole process.
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
+- Fallbacks in steps that write durable, idempotency-keyed output: ask "if the fallback fires, will the next healthy run redo this item?" If not, the fallback skips (leaves the slot empty) or marks its output redoable — filling the slot is a permanent decision, not a degradation. When copying a fallback convention, check whether it relied on a companion retry or sweep the new code lacks.
 - Be ready to go back and clarify if something doesn't make sense
 
 **Design for isolation and clarity:**

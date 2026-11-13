@@ -110,6 +110,13 @@ Vague name, tests mock not code
 - Clear name
 - Real code (no mocks unless unavoidable)
 
+**Mirroring an existing pattern?** First check that the original's happy
+path has a test or a recorded live run. If not, the first failing test
+drives a realistic value through every validator on that path (schema,
+enum, type check) instead of mocking them — a pattern is only a safe
+template once its happy path has been seen working, and copying an
+unexercised one copies its crash.
+
 ### Verify RED - Watch It Fail
 
 **MANDATORY. Never skip.**

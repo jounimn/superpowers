@@ -90,6 +90,7 @@ Good agent prompts are:
 1. **Focused** - One clear problem domain
 2. **Self-contained** - All context needed to understand the problem
 3. **Specific about output** - What should the agent return?
+4. **Grounded in measured facts** - State only environment facts you measured yourself (line endings, encodings, tool versions, paths), and name the command. Before naming an input file, check it exists and is non-empty (`wc -c <file>`, `grep '^#' <file>`) and give its real path; tell the agent to verify every named input is non-empty before reading it. A fact relayed from another agent gains authority without gaining evidence, and a path in a prompt is a claim, not a fact.
 
 ```markdown
 Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
@@ -165,3 +166,4 @@ After agents return:
 2. **Check for conflicts** - Did agents edit same code?
 3. **Run full suite** - Verify all fixes work together
 4. **Spot check** - Agents can make systematic errors
+5. **Check the checkout, not just the summaries** - Record `git rev-parse HEAD` and `git config --local --list` before dispatching; after agents return, compare both and run `git status --porcelain`. Account for every untracked file nobody asked for (usually a mis-parsed redirection such as an unquoted `>`), delete it, and stage by explicit path, never `git add -A`. An agent experiment that missed its `cd` into a scratch dir can commit to your branch or change local config while `git status` stays clean. "Read-only" is a property of each command, not of the agent's intent.
