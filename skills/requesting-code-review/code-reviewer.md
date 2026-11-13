@@ -49,7 +49,7 @@ Subagent (general-purpose):
 
     ## Read-Only Review
 
-    Your review is read-only on this checkout. Do not mutate the working tree, the index, HEAD, or branch state in any way. Use tools like `git show`, `git diff`, and `git log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary directory (e.g. `git worktree add /tmp/review-[SHA] [SHA]`) — never move HEAD on this checkout.
+    Your review is read-only on this checkout. Do not mutate the working tree, the index, HEAD, or branch state in any way. Use tools like `git show`, `git diff`, and `git log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary directory (e.g. `git worktree add /tmp/review-[SHA] [SHA]`) — never move HEAD on this checkout. Your shell may start each call in this checkout, so in any experiment every mutating command names its scratch repo explicitly (`git -C "$SCRATCH" ...`) — a missed `cd` otherwise commits to the branch under review.
 
     ## You Do Not Dispatch Subagents
 
@@ -82,6 +82,13 @@ Subagent (general-purpose):
     - Sound design decisions?
     - Reasonable scalability and performance?
     - Security concerns?
+    - A claim that access is closed "by absence" (no policy, rule, or
+      grant was ever written) is verified against the live state — a
+      catalog query such as `pg_policies` — not the source; when you
+      cannot reach live state, report the claim as unverified. Probe each
+      denied operation on its own and name the mechanism that denied it:
+      a pre-existing failure can mask the new rule, so an observed denial
+      does not prove the new rule produced it.
     - Integrates cleanly with surrounding code?
 
     **Testing:**
@@ -123,12 +130,20 @@ Subagent (general-purpose):
       independent oracle agrees: a boundary probe past each range end, or
       a known landmark record. A spec number taken from the same run is
       not an oracle.
+    - Data extracted from a table (PDF, spreadsheet, page)? The fixture
+      must keep the source's header row, and a test must compare it with
+      the target's field names and order. Ask: which test goes red if two
+      column labels are swapped without changing a number? A values-only
+      fixture verifies the transcription, never the interpretation.
 
     **Cross-task seams (whole-branch review only):**
     - Does one task's code rely on another task's policy, config, or
       permissions, or re-present another task's output in a new context
       (print, theme, export)? Judge the pair together — each half can
       pass its own review while the composition is wrong.
+    - Does a consumer branch on a state value (status, enum, event name)?
+      Open the producer and confirm it emits that value at runtime —
+      tests that inject the value directly cannot show it never occurs.
     - Does every path referenced by the project's entry-point docs
       (README, AGENTS.md/CLAUDE.md, docs/) — touched in this range or
       not — and by docs or code in this range exist in [HEAD_SHA]'s tree?
@@ -172,7 +187,10 @@ Subagent (general-purpose):
     [Code style, optimization opportunities, documentation polish]
 
     For each issue:
-    - File:line reference
+    - File:line reference — if the issue affects several sites, list
+      every site as its own file:line item, never a count in prose
+      ("in all three callers"): fixes are closed site by site, and a
+      count in prose is lost at the first hand-off
     - What's wrong
     - Why it matters
     - How to fix (if not obvious)
