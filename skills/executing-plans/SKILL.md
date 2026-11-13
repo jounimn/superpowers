@@ -209,6 +209,13 @@ read its output, and compare. Three outcomes:
   continue. The ruling is carried, not remembered: later tasks that touch
   the same interface read it from the ledger.
 
+A mechanical edit across many files goes in a script file, not an inline
+heredoc, once it passes ~20 lines or mixes quote styles — a heredoc fails
+in the shell before the script runs, with an error that points at the
+transport. The script asserts each replacement's exact match count and
+writes nothing unless every count matches; afterwards, grep for the
+removed term and account for every hit that remains.
+
 Commit as the plan's commit steps say. A task that spans several commits
 is fine; BASE is what the review range is cut from, never `HEAD~1`.
 
