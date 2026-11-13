@@ -50,6 +50,8 @@ Skip any step = lying, not verifying
 | Environment literal changed (port, host, URL, path) | Repo-wide search for the old value: every hit accounted for | The edited file works |
 | Commit or history rewrite done | Stored result re-read in a separate call: `git log -1 --format=%B` for a commit; `git log --format='%h %s%n%b' <base>..HEAD` over every rewritten commit (or `git range-diff <backup-ref>...HEAD`) for a history rewrite | The mutating command's own echo |
 | Scripted edit of hand-formatted JSON/YAML | Untouched file round-trips byte-identical first; diff stat matches the intended change | Tests passing |
+| Built on your human partner's hand-edit ("I already updated X") | `git diff` of the files they changed, each changed value traced to the code that reads it; claimed order/priority/fallback semantics confirmed in the consuming library's docs | The file parses; tests pass |
+| Service deployed with its config | The service's own inventory (list endpoint, admin query) holds every declared item; its log shows no per-item validation errors | Health check answers; HTTP 200 |
 | Change done in a project with handover.md | An entry at the end of handover.md covering every changed file | "The code works" |
 
 ## Red Flags - STOP
@@ -101,6 +103,13 @@ Skip any step = lying, not verifying
 ✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
 ❌ "Tests pass, phase complete"
 ```
+
+**Deploys:**
+```
+✅ Liveness → inventory matches every declared item → log has no per-item errors → cheapest real request per item, asserting on content
+❌ "Health check is green" (a service can drop every config entry and still answer; a 200 can carry an error message)
+```
+Validate an env file's `KEY=value` shape before any shell sources it — a malformed line executes its value.
 
 **Agent delegation:**
 ```
