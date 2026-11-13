@@ -168,7 +168,11 @@ what you checked as you check it:
 
 The scan's output is a table, not a verdict. One row for every pair of tasks
 that share a file or an interface: the two tasks, what one produces against
-what the other consumes, and what you found. One row for every task: whether
+what the other consumes, and what you found. When the consumer branches on a
+value (a status, enum, event name), the row lists the values it waits for
+against the values the producer actually emits at runtime, citing the
+producer line — matching types and signatures say nothing about whether the
+triggering value ever occurs, and tests that inject it cannot tell. One row for every task: whether
 its own text agrees with itself — the tests it specifies against the code it
 specifies, the files it creates against the files it later touches. "The scan
 is clean" without those rows is not a scan you ran.
@@ -281,6 +285,11 @@ and fix-round diffs need it.
   report. In real sessions, every reviewer a worker spawned duplicated
   the task review the controller dispatched anyway — a full extra
   review seat per task.
+- State only environment facts you measured (line endings, encodings, tool
+  versions, paths), naming the command — never relay another agent's claim.
+  Before naming an input file, confirm it exists and is non-empty
+  (`wc -c <file>`) and give its real path. A path or fact in a dispatch is a
+  claim, not evidence.
 - If an earlier task parked a finding in the area this task touches, carry
   a pointer to that ledger entry in the dispatch.
 - Record the implementer's agent identity from the dispatch result —
@@ -331,6 +340,18 @@ needed.
 - **Reviewer inputs:** the task reviewer gets three paths — the same brief
   file, the report file, and the review package — plus the global
   constraints that bind the task.
+- Check the checkout around every dispatch. After the implementer returns,
+  run `git status --porcelain` and account for every untracked file nobody
+  asked for — usually a mis-parsed redirection (an unquoted `>`) — then
+  delete it; stage by explicit path, never `git add -A`. Before dispatching
+  a reviewer, record `git rev-parse HEAD` and `git config --local --list`,
+  and compare both when it returns: an experiment that missed its `cd` into
+  a scratch dir commits to your branch while `git status` stays clean, and
+  your next commit buries it. When a reviewer may run experiments, require
+  every mutating command to name the scratch repo (`git -C "$SCRATCH" ...`).
+- If the review hinges on a state value triggering behaviour, tell the
+  reviewer to open the producer of that value, not just the consumer's
+  tests.
 - The global-constraints block you hand the reviewer is its attention
   lens. Copy the binding requirements verbatim from the plan's Global
   Constraints section or the spec: exact values, exact formats, and the
